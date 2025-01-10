@@ -1,10 +1,11 @@
 {
   "name": "wasm-rust",
+  "version": "0.0.1",
   "private": false,
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/falcosan/wasm_image_compressor"
   },
   "scripts": {
     "dev": "nuxt dev",
