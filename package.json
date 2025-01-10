@@ -1,6 +1,6 @@
 {
-  "name": "wasm-rust",
-  "version": "0.0.1",
+  "name": "wasm_image_compressor",
+  "version": "1.0.1",
   "private": false,
   "license": "MIT",
   "repository": {
