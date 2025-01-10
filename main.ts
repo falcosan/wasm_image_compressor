@@ -1,1 +1,1 @@
-export { convertImage } from "./wasm/pkg";
+export * as wasm from "./wasm/pkg";
