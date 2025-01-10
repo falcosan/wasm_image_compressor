@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "nuxt dev",
-    "dev:wasm": "npm run dev && npm run wasm:bundle",
+    "dev:wasm": "npm run wasm:bundle && npm run dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
     "generate": "nuxt generate",

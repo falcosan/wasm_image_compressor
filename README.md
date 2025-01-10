@@ -7,7 +7,7 @@
 
 ## Execute
 
-`cargo build`
+`cd wasm && cargo build`
 
 `npm install`
 
