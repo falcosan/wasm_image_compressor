@@ -5,7 +5,7 @@
 - Cargo: 1.83.0
 - wasm-pack: 0.13.1
 
-## Ejecute
+## Execute
 
 `cargo build`
 
