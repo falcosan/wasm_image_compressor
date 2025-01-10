@@ -1,9 +1,7 @@
-import init, { convertImage } from "@@/wasm/pkg";
+import { convertImage } from "@@/wasm/pkg";
 import type { WorkerRequest, WorkerResponse } from "@/schema/convert";
 
 export const useImage = () => {
-  const initialized = ref(false);
-
   const inputFileEndings = {
     "image/webp": "webp",
     "image/jpeg": "jpeg",
@@ -13,13 +11,6 @@ export const useImage = () => {
 
   const acceptList = ["image/*"].join(",");
 
-  const initialize = async (): Promise<void> => {
-    if (!initialized.value) {
-      await init();
-      initialized.value = true;
-    }
-  };
-
   const progressCallback = (progress: number, message: string): void => {
     console.log(`Progress: ${progress}%, Message: ${message}`);
   };
@@ -28,8 +19,6 @@ export const useImage = () => {
     request: WorkerRequest
   ): Promise<WorkerResponse> => {
     try {
-      await initialize();
-
       const { inputFile, inputType, outputType, compressionStrength } = request;
 
       const result = await new Promise<Uint8Array>((resolve, reject) => {
