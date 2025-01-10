@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WorkerRequest, WorkerResponse } from "@/schema/convert";
 
-const { imageConverter, inputFileEndings } = useImage();
+const { getMimeType, imageConverter, inputFileEndings } = useImage();
 
 const file = ref<File>();
 const outputType = ref("image/webp" as keyof typeof inputFileEndings);
@@ -17,6 +17,13 @@ const startDownload = (file: Uint8Array, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
+const trimFileExtension = (filename: string) => {
+  if (!filename) return "untitled_file_compressed";
+
+  return filename.indexOf(".") === -1
+    ? filename
+    : filename.split(".").slice(0, -1).join(".");
+};
 const startConversion = async () => {
   if (file.value) {
     const reader = new FileReader();
@@ -25,9 +32,7 @@ const startConversion = async () => {
       const res = e.target?.result as ArrayBuffer;
       const arr = new Uint8Array(res);
 
-      if (!file.value) {
-        return;
-      }
+      if (!file.value) return;
 
       try {
         const params: WorkerRequest = {
@@ -40,10 +45,10 @@ const startConversion = async () => {
         const response: WorkerResponse = await imageConverter(params);
 
         if (response.success && response.data) {
-          startDownload(
-            response.data,
-            `converted.${inputFileEndings[outputType.value]}`
-          );
+          const filename = trimFileExtension(file.value.name);
+          const filetype = inputFileEndings[outputType.value];
+
+          startDownload(response.data, `${filename}.${filetype}`);
         } else if (response.error) {
           console.error("Conversion error:", response.error);
         }
@@ -55,8 +60,6 @@ const startConversion = async () => {
     reader.readAsArrayBuffer(file.value);
   }
 };
-
-const getMimeType = (file: File): string => file.type;
 </script>
 
 <template>
