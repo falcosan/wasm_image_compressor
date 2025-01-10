@@ -1,21 +1,11 @@
 <script setup lang="ts">
 import type { WorkerRequest, WorkerResponse } from "@/schema/convert";
 
-const { getMimeType, imageConverter, inputFileEndings } = useImage();
+const { getMimeType, imageConverter, inputFileEndings, downloadImage } =
+  useImage();
 
 const file = ref<File>();
 const outputType = ref("image/webp" as keyof typeof inputFileEndings);
-
-const startDownload = (file: Uint8Array, filename: string) => {
-  const blob = new Blob([file], { type: "application/octet-stream" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-};
 
 const trimFileExtension = (filename: string) => {
   if (!filename) return "untitled_file_compressed";
@@ -37,7 +27,7 @@ const startConversion = async () => {
       try {
         const params: WorkerRequest = {
           inputFile: arr,
-          compressionStrength: 0.15,
+          compressionStrength: 0.14,
           outputType: outputType.value,
           inputType: getMimeType(file.value),
         };
@@ -48,7 +38,7 @@ const startConversion = async () => {
           const filename = trimFileExtension(file.value.name);
           const filetype = inputFileEndings[outputType.value];
 
-          startDownload(response.data, `${filename}.${filetype}`);
+          downloadImage(response.data, `${filename}.${filetype}`);
         } else if (response.error) {
           console.error("Conversion error:", response.error);
         }
