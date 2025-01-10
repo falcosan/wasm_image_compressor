@@ -1,0 +1,25 @@
+[package]
+name = "wasm-convert"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+gloo-utils = { version = "0.2.0", features = ["serde"] }
+image = "0.25.5"
+js-sys = "0.3.76"
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = { version = "1.0.117", default-features = false }
+thiserror = "1.0.61"
+wasm-bindgen = "0.2.84"
+pixlzr = "0"
+
+[dependencies.web-sys]
+version = "0.3.76"
+features = ["Blob"]
+
+[profile.release]
+lto = true
+opt-level = "s"
