@@ -1,6 +1,6 @@
 <template>
   <Html lang="en" />
-  <Title>POC - Wasm</Title>
+  <Title>Wasm Image Compressor</Title>
   <Head>
     <Link rel="icon" href="/favicon.ico" />
   </Head>
