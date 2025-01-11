@@ -1,3 +1,6 @@
-import initWasm, { convertImage } from "./wasm/pkg";
+const wasmModule = require("./wasm/pkg");
 
-export { initWasm, convertImage };
+module.exports = {
+  initWasm: wasmModule.default,
+  convertImage: wasmModule.convertImage,
+};
