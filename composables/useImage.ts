@@ -1,4 +1,4 @@
-import { convertImage } from "@@/wasm/pkg";
+import { convertImage } from "wasm_image_compressor";
 import type { WorkerRequest, WorkerResponse } from "@/schema/convert";
 
 export const useImage = () => {
@@ -20,7 +20,6 @@ export const useImage = () => {
   ): Promise<WorkerResponse> => {
     try {
       const { inputFile, inputType, outputType, compressionStrength } = request;
-
       const result = await new Promise<Uint8Array>((resolve, reject) => {
         try {
           const res = convertImage(
