@@ -2,7 +2,7 @@
 
 cd wasm
 
-wasm-pack build --out-name index --target web --out-dir dist
+wasm-pack build --out-name index --target bundler --out-dir dist
 
 cd dist
 
