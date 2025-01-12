@@ -51,7 +51,7 @@ const compressedImage = await convertImage(
 | ------------- | ---------- | ------------------------------------------------------------------ |
 | `file`        | Uint8Array | Input image file as a Uint8Array                                   |
 | `srcType`     | string     | type of the source image (e.g., "jpeg", "png")                     |
-| `targetType`  | string     | Desired MIME type for the output image (e.g., "webp", "jpeg")      |
+| `targetType`  | string     | Desired type for the output image (e.g., "webp", "jpeg")           |
 | `compression` | number     | Compression level (0-1), lower values result in higher compression |
 | `callback`    | function   | Progress update callback function                                  |
 
