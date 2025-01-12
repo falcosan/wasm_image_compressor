@@ -17,8 +17,9 @@ fn load_image(
         Some(MediaType::Raster(file_type)) => {
             Ok(image::load_from_memory_with_format(file, file_type)?)
         }
-        None => Ok(image::load_from_memory(file)
-            .map_err(|e| ConvertError::UnknownFileType(e.to_string()))?),
+        None => Ok(image::load_from_memory(file).map_err(|_| {
+            ConvertError::UnknownFileType("Failed to load image from memory".into())
+        })?),
     }
 }
 
@@ -79,7 +80,7 @@ pub fn convert_image(
         &JsValue::from_str("Loading image"),
     );
     let img = load_image(&file, MediaType::from_mime_type(src_type))
-        .map_err(|e| JsValue::from_str(e.to_string().as_str()))?;
+        .map_err(|_| JsValue::from_str("unknown file type"))?;
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(50.0),
@@ -96,7 +97,7 @@ pub fn convert_image(
         &JsValue::from_str("Converting image"),
     );
     let output = write_image(&img, ImageFormat::from_mime_type(target_type), compression)
-        .map_err(|e| JsValue::from_str(e.to_string().as_str()))?;
+        .map_err(|_| JsValue::from_str("error writing image"))?;
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(100.0),
