@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
+    "build:wasm": "./build.sh",
     "preview": "nuxt preview",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",

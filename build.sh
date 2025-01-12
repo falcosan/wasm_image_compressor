@@ -19,6 +19,3 @@ mv "${LIB_DIR}/package.json" "${PKG_DIR}/"
 # Update package.json
 cd "${PKG_DIR}"
 jq '.files = ["lib/"] | .main = "lib/index.js" | .types = "lib/index.d.ts"' package.json > temp_package.json && mv temp_package.json package.json
-
-# Publish package
-npm publish --access=public
