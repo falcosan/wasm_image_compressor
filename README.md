@@ -34,7 +34,7 @@ import { convertImage } from "wasm_image_compressor";
 After initialization, you can use the `convertImage` function to compress images. Here's a basic example:
 
 ```javascript
-const compressedImage = await convertImage(originalImage, options);
+const compressedImage = await convertImage(inputFile, inputType, outputType, compressionStrength  progressCallback);
 ```
 
 For detailed usage instructions and API documentation, please refer to the [API Documentation](#) section.
