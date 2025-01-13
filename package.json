@@ -7,12 +7,16 @@
     "type": "git",
     "url": "https://github.com/falcosan/wasm_image_compressor"
   },
+  "publishConfig": {
+    "registry": "https://www.npmjs.com/package/wasm_image_compressor"
+  },
   "scripts": {
     "dev": "nuxt dev",
     "build:wasm": "./build.sh",
-    "build": "npm run build:wasm && nuxt build",
+    "build": "nuxt build",
     "preview": "nuxt preview",
     "generate": "nuxt generate",
+    "preinstall": "npm run build:wasm",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
