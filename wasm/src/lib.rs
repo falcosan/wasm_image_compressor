@@ -11,6 +11,21 @@ use web_sys::{Blob, BlobPropertyBag, Request, RequestInit, RequestMode, Response
 mod error;
 mod media_type;
 
+enum CompressionFactor {
+    Value(f32),
+    Skip,
+}
+
+fn parse_compression_factor(compression_factor: &JsValue) -> CompressionFactor {
+    match compression_factor {
+        value if value.is_null() || value.is_falsy() => CompressionFactor::Skip,
+        value => value
+            .as_f64()
+            .map(|v| CompressionFactor::Value(v as f32))
+            .unwrap_or(CompressionFactor::Value(0.75)),
+    }
+}
+
 async fn fetch_image(url: &str) -> Result<Vec<u8>, JsValue> {
     let opts = RequestInit::new();
     opts.set_method("GET");
@@ -33,6 +48,7 @@ fn load_image(file: &[u8], source_type: Option<MediaType>) -> Result<DynamicImag
             .map_err(|_| ConvertError::UnknownFileType("Failed to load image from memory".into())),
     }
 }
+
 fn process_image(
     img: DynamicImage,
     source_type: Option<ImageFormat>,
@@ -50,29 +66,36 @@ fn process_image(
         | ImageFormat::Farbfeld
         | ImageFormat::Pnm
         | ImageFormat::Tga => DynamicImage::ImageRgb8(i.to_rgb8()),
-        ImageFormat::Ico => i.resize(256, 256, image::imageops::FilterType::Lanczos3),
+        ImageFormat::Ico => i.resize_exact(256, 256, image::imageops::FilterType::Lanczos3),
         ImageFormat::OpenExr => DynamicImage::ImageRgba32F(i.to_rgba32f()),
         _ => i,
     }
 }
+
 fn write_image(
     img: &DynamicImage,
     file_type: Option<ImageFormat>,
-    compression_factor: f32,
+    compression_factor: CompressionFactor,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let target_type = file_type.unwrap_or(ImageFormat::WebP);
-    let mut pix = Pixlzr::from_image(img, 36, 36);
-    pix.shrink_by(FilterType::Lanczos3, compression_factor);
-    let compressed_img = pix.to_image(FilterType::Nearest);
+    let final_img = match compression_factor {
+        CompressionFactor::Value(compression) => {
+            let mut pix = Pixlzr::from_image(img, 36, 36);
+            pix.shrink_by(FilterType::Lanczos3, compression);
+            pix.to_image(FilterType::Nearest)
+        }
+        CompressionFactor::Skip => img.clone(),
+    };
     let mut buffer = Vec::with_capacity(8192);
-    compressed_img.write_to(&mut Cursor::new(&mut buffer), target_type)?;
+    final_img.write_to(&mut Cursor::new(&mut buffer), target_type)?;
     Ok(buffer)
 }
+
 async fn convert_image_internal(
     file_input: &JsValue,
     src_type: &str,
     target_type: &str,
-    compression: f32,
+    compression_factor: CompressionFactor,
 ) -> Result<Vec<u8>, JsValue> {
     let file_data = if file_input.is_string() {
         fetch_image(&file_input.as_string().unwrap()).await?
@@ -90,25 +113,29 @@ async fn convert_image_internal(
         ImageFormat::from_mime_type(src_type),
         ImageFormat::from_mime_type(target_type),
     );
-    let output = write_image(&img, ImageFormat::from_mime_type(target_type), compression)
-        .map_err(|_| JsValue::from_str("Error writing image"))?;
+    let output = write_image(
+        &img,
+        ImageFormat::from_mime_type(target_type),
+        compression_factor,
+    )
+    .map_err(|_| JsValue::from_str("Error writing image"))?;
 
     Ok(output)
 }
+
 #[wasm_bindgen(js_name = convertImage)]
 pub async fn convert_image(
     file_input: &JsValue,
     src_type: &str,
     target_type: &str,
-    compression: f32,
+    compression_factor: JsValue,
 ) -> Result<String, JsValue> {
+    let compression = parse_compression_factor(&compression_factor);
     let output = convert_image_internal(file_input, src_type, target_type, compression).await?;
-
     let final_format = ImageFormat::from_mime_type(target_type).unwrap_or(ImageFormat::WebP);
     let mime_type = MediaType::guess_mime_type(final_format);
     let array = Uint8Array::from(output.as_slice());
-    let blob_parts = Array::new();
-    blob_parts.push(&array);
+    let blob_parts = Array::of1(&array);
     let blob_opts = BlobPropertyBag::new();
     blob_opts.set_type(mime_type);
     let blob = Blob::new_with_u8_array_sequence_and_options(&blob_parts, &blob_opts)
@@ -117,13 +144,15 @@ pub async fn convert_image(
         .map_err(|_| JsValue::from_str("Failed to create Blob URL"))?;
     Ok(url)
 }
+
 #[wasm_bindgen(js_name = convertImageAsUint8Array)]
 pub async fn convert_image_as_uint8array(
     file_input: &JsValue,
     src_type: &str,
     target_type: &str,
-    compression: f32,
+    compression_factor: JsValue,
 ) -> Result<Uint8Array, JsValue> {
+    let compression = parse_compression_factor(&compression_factor);
     let output = convert_image_internal(file_input, src_type, target_type, compression).await?;
     Ok(Uint8Array::from(output.as_slice()))
 }

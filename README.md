@@ -33,6 +33,34 @@ import {
 } from "wasm_image_compressor";
 ```
 
+## API Reference
+
+Each function shares the same parameters, but returns different data types:
+
+| Function Name                | Return Type       | Description                                 |
+| ---------------------------- | ----------------- | ------------------------------------------- |
+| **convertImage**             | string (Blob URL) | Converts an image and returns a blob URL    |
+| **convertImageAsUint8Array** | Uint8Array        | Converts an image and returns the raw bytes |
+
+#### Parameters
+
+| Parameter           | Type              | Description                                                                                    |
+| ------------------- | ----------------- | ---------------------------------------------------------------------------------------------- |
+| `input`             | URL or Uint8Array | Input image as a URL or Uint8Array                                                             |
+| `srcType`           | string            | Type of the source image (e.g., "image/jpeg", "image/png")                                     |
+| `targetType`        | string            | Desired type for the output image (e.g., "image/webp")                                         |
+| `compressionFactor` | number            | Compression factor (0-1, where 1 skips compression), lower values result in higher compression |
+
+#### Supported Image Formats
+
+- JPEG
+- PNG
+- WebP
+- GIF
+- TIFF
+- BMP
+- ICO
+
 ## Usage
 
 Both `convertImage` and `convertImageAsUint8Array` support two input types: **URL** and **Uint8Array**.
@@ -48,7 +76,7 @@ const compressedBlobUrl = await convertImage(
   "https://example.com/image.jpg", // Image URL
   "image/jpeg", // Source image type
   "image/webp", // Target image type
-  0.75 // Compression strength (0-1)
+  0.75
 );
 
 // Now you can directly use the blob URL in an <img> tag:
@@ -103,36 +131,6 @@ const compressedBytes = await convertImageAsUint8Array(
 
 // You can then handle the Uint8Array as needed, e.g., convert it to a Blob or store it.
 ```
-
-## API Reference
-
-Each function shares the same parameters, but returns different data types:
-
-| Function Name                | Return Type       | Description                                 |
-| ---------------------------- | ----------------- | ------------------------------------------- |
-| **convertImage**             | string (Blob URL) | Converts an image and returns a blob URL    |
-| **convertImageAsUint8Array** | Uint8Array        | Converts an image and returns the raw bytes |
-
-#### Parameters
-
-| Parameter     | Type              | Description                                                        |
-| ------------- | ----------------- | ------------------------------------------------------------------ |
-| `input`       | URL or Uint8Array | Input image as a URL or Uint8Array                                 |
-| `srcType`     | string            | Type of the source image (e.g., "image/jpeg", "image/png")         |
-| `targetType`  | string            | Desired type for the output image (e.g., "image/webp")             |
-| `compression` | number            | Compression level (0-1), lower values result in higher compression |
-
-#### Supported Image Formats
-
-- JPEG
-- PNG
-- WebP
-- GIF
-- TIFF
-- BMP
-- ICO
-
-**Note**: Actual format support may vary based on the underlying image processing library and WebAssembly capabilities.
 
 ## Development
 

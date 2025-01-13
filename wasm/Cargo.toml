@@ -1,6 +1,6 @@
 [package]
 name = "wasm_image_compressor"
-version = "1.4.0"
+version = "1.4.1"
 edition = "2021"
 description = "wasm_image_compressor"
 authors = ["Daniele Falchetti <danielefalche@gmail.com>"]
