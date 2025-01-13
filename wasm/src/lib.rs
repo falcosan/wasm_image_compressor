@@ -1,12 +1,12 @@
 use error::ConvertError;
 use image::{DynamicImage, ImageFormat};
-use js_sys::{Function, Uint8Array};
+use js_sys::{Array, Function, Uint8Array};
 use media_type::MediaType;
 use pixlzr::{FilterType, Pixlzr};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
+use web_sys::{Blob, BlobPropertyBag, Request, RequestInit, RequestMode, Response, Url};
 
 mod error;
 mod media_type;
@@ -78,7 +78,7 @@ pub async fn convert_image(
     target_type: &str,
     compression: f32,
     cb: &Function,
-) -> Result<Uint8Array, JsValue> {
+) -> Result<JsValue, JsValue> {
     let this = JsValue::NULL;
     let _ = cb.call2(
         &this,
@@ -123,10 +123,21 @@ pub async fn convert_image(
     );
     let output = write_image(&img, ImageFormat::from_mime_type(target_type), compression)
         .map_err(|_| JsValue::from_str("Error writing image"))?;
+    let final_format = ImageFormat::from_mime_type(target_type).unwrap_or(ImageFormat::WebP);
+    let mime_type = MediaType::guess_mime_type(final_format);
+    let array = Uint8Array::from(output.as_slice());
+    let blob_parts = Array::new();
+    blob_parts.push(&array);
+    let blob_opts = BlobPropertyBag::new();
+    blob_opts.set_type(mime_type);
+    let blob = Blob::new_with_u8_array_sequence_and_options(&blob_parts, &blob_opts)
+        .map_err(|_| JsValue::from_str("Failed to create Blob"))?;
+    let url = Url::create_object_url_with_blob(&blob)
+        .map_err(|_| JsValue::from_str("Failed to create Blob URL"))?;
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(100.0),
         &JsValue::from_str("Conversion complete"),
     );
-    Ok(Uint8Array::from(output.as_slice()))
+    Ok(JsValue::from_str(&url))
 }

@@ -20,7 +20,7 @@ thiserror = "1.0.61"
 serde = { version = "1.0.203", features = ["derive"] }
 gloo-utils = { version = "0.2.0", features = ["serde"] }
 serde_json = { version = "1.0.117", default-features = false }
-web-sys = { version = "0.3", features = ["Request", "RequestInit", "RequestMode", "Response", "Window"] }
+web-sys = { version = "0.3", features = ["Url", "Blob", "BlobPropertyBag", "Request", "RequestInit", "RequestMode", "Response", "Window"] }
 
 [profile.release]
 lto = true

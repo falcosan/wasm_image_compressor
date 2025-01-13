@@ -20,7 +20,7 @@ export const useImage = () => {
   ): Promise<WorkerResponse> => {
     try {
       const { inputFile, inputType, outputType, compressionStrength } = request;
-      const result = await new Promise<Uint8Array>((resolve, reject) => {
+      const result = await new Promise<string>((resolve, reject) => {
         try {
           const res = convertImage(
             inputFile,
@@ -65,9 +65,7 @@ export const useImage = () => {
     return file.type as keyof typeof inputFileEndings;
   };
 
-  const downloadImage = (file: Uint8Array, filename: string) => {
-    const blob = new Blob([file], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob);
+  const downloadImage = (url: string, filename: string) => {
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;

@@ -1,6 +1,6 @@
 export interface WorkerResponse {
   success: boolean;
-  data?: Uint8Array;
+  data?: string;
   error?: string;
 }
 
