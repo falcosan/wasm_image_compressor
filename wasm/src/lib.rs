@@ -61,7 +61,7 @@ fn write_image(
     compression_factor: f32,
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let target_type = file_type.unwrap_or(ImageFormat::WebP);
-    let mut pix = Pixlzr::from_image(img, 64, 64);
+    let mut pix = Pixlzr::from_image(img, 36, 36);
     pix.shrink_by(FilterType::Lanczos3, compression_factor);
     let compressed_img = pix.to_image(FilterType::Nearest);
     let mut buffer = Vec::with_capacity(8192);

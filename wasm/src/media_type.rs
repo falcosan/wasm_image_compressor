@@ -1,23 +1,23 @@
 use image::ImageFormat;
 
-pub enum MediaType {
+pub(super) enum MediaType {
     Raster(ImageFormat),
 }
 impl MediaType {
-    pub fn from_mime_type(mime_type: &str) -> Option<Self> {
+    pub(super) fn from_mime_type(mime_type: &str) -> Option<Self> {
         match ImageFormat::from_mime_type(mime_type) {
             Some(format) => Some(Self::Raster(format)),
             None => from_custom_mime_type(mime_type),
         }
     }
-    pub fn guess_mime_type(format: ImageFormat) -> &'static str {
+    pub(super) fn guess_mime_type(format: ImageFormat) -> &'static str {
         match format {
             ImageFormat::Png => "image/png",
             ImageFormat::Jpeg => "image/jpeg",
             ImageFormat::Gif => "image/gif",
             ImageFormat::Avif => "image/avif",
             ImageFormat::WebP => "image/webp",
-            ImageFormat::Ico => "image/vnd.microsoft.icon",
+            ImageFormat::Ico => "image/x-icon",
             _ => "application/octet-stream",
         }
     }
