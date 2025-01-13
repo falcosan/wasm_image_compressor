@@ -1,6 +1,6 @@
 # WASM Image Compressor
 
-A powerful WebAssembly-based image compression library for efficient client-side image processing.
+A powerful WebAssembly-based image compression library for efficient client-side image processing with flexible input options.
 
 ## Installation
 
@@ -31,15 +31,36 @@ import { convertImage } from "wasm_image_compressor";
 
 ## Usage
 
-After initialization, compress images using the `convertImage` function:
+The `convertImage` function supports two input types: **URL** and **Uint8Array**
+
+### Compress Image from URL
 
 ```javascript
 const compressedImage = await convertImage(
-  inputFile,
-  inputType,
-  outputType,
-  compressionStrength,
-  progressCallback
+  "https://example.com/image.jpg", // Image URL
+  "image/jpeg", // Source image type
+  "image/webp", // Target image type
+  0.75, // Compression strength (0-1)
+  (progress, message) => {
+    console.log(`${progress}% - ${message}`);
+  }
+);
+```
+
+### Compress Image from Uint8Array
+
+```javascript
+const uint8ArrayInput = new Uint8Array([
+  /* image binary data */
+]);
+const compressedImage = await convertImage(
+  uint8ArrayInput, // Image as Uint8Array
+  "image/jpeg", // Source image type
+  "image/webp", // Target image type
+  0.75, // Compression strength (0-1)
+  (progress, message) => {
+    console.log(`${progress}% - ${message}`);
+  }
 );
 ```
 
@@ -47,13 +68,15 @@ const compressedImage = await convertImage(
 
 #### Parameters
 
-| Parameter     | Type       | Description                                                        |
-| ------------- | ---------- | ------------------------------------------------------------------ |
-| `file`        | Uint8Array | Input image file as a Uint8Array                                   |
-| `srcType`     | string     | type of the source image (e.g., "jpeg", "png")                     |
-| `targetType`  | string     | Desired type for the output image (e.g., "webp", "jpeg")           |
-| `compression` | number     | Compression level (0-1), lower values result in higher compression |
-| `callback`    | function   | Progress update callback function                                  |
+| Parameter     | Type              | Description                                                        |
+| ------------- | ----------------- | ------------------------------------------------------------------ |
+| `input`       | URL or Uint8Array | Input image as a URL or Uint8Array                                 |
+| `srcType`     | string            | Type of the source image (e.g., "image/jpeg", "image/png")         |
+| `targetType`  | string            | Desired type for the output image (e.g., "image/webp")             |
+| `compression` | number            | Compression level (0-1), lower values result in higher compression |
+| `callback`    | function          | Progress update callback function                                  |
+
+#### Callback Function
 
 The `callback` function receives two arguments:
 

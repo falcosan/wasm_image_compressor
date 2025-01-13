@@ -4,14 +4,9 @@ export interface WorkerResponse {
   error?: string;
 }
 
-export interface Settings {
-  type: string;
-}
-
 export interface WorkerRequest {
-  inputFile: Uint8Array;
+  inputFile: string | Uint8Array;
   inputType: string;
   outputType: string;
-  settings?: Settings;
-  compressionStrength: Float;
+  compressionStrength: number;
 }

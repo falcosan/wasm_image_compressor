@@ -1,6 +1,6 @@
 [package]
 name = "wasm_image_compressor"
-version = "1.3.5"
+version = "1.3.6"
 edition = "2021"
 description = "wasm_image_compressor"
 authors = ["Daniele Falchetti <danielefalche@gmail.com>"]
@@ -11,7 +11,8 @@ repository = "https://github.com/falcosan/wasm_image_compressor"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-wasm-bindgen = "0.2.99"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
 pixlzr = "0.3.1"
 image = "0.25.5"
 js-sys = "0.3.76"
@@ -19,18 +20,7 @@ thiserror = "1.0.61"
 serde = { version = "1.0.203", features = ["derive"] }
 gloo-utils = { version = "0.2.0", features = ["serde"] }
 serde_json = { version = "1.0.117", default-features = false }
-
-[dependencies.web-sys]
-version = "0.3.76"
-features = [
-    "Blob",
-    "Window",
-    "Document",
-    "Element",
-    "HtmlElement",
-    "Node",
-    "console"
-]
+web-sys = { version = "0.3", features = ["Request", "RequestInit", "RequestMode", "Response", "Window"] }
 
 [profile.release]
 lto = true

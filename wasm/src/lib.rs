@@ -80,7 +80,7 @@ fn process_image(
 
 #[wasm_bindgen(js_name = convertImage)]
 pub async fn convert_image(
-    image_url: &str,
+    file_input: &JsValue,
     src_type: &str,
     target_type: &str,
     compression: f32,
@@ -92,22 +92,28 @@ pub async fn convert_image(
         &JsValue::from_f64(10.0),
         &JsValue::from_str("Starting conversion"),
     );
-
-    let _ = cb.call2(
-        &this,
-        &JsValue::from_f64(35.0),
-        &JsValue::from_str("Fetching image"),
-    );
-    let file = fetch_image(image_url).await?;
-
+    let file_data = if file_input.is_string() {
+        let url = file_input.as_string().unwrap();
+        let _ = cb.call2(
+            &this,
+            &JsValue::from_f64(35.0),
+            &JsValue::from_str("Fetching image"),
+        );
+        fetch_image(&url).await?
+    } else if file_input.is_instance_of::<Uint8Array>() {
+        Uint8Array::new(file_input).to_vec()
+    } else {
+        return Err(JsValue::from_str(
+            "Invalid input type. Must be a URL or Uint8Array.",
+        ));
+    };
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(50.0),
         &JsValue::from_str("Loading image"),
     );
-    let img = load_image(&file, MediaType::from_mime_type(src_type))
-        .map_err(|_| JsValue::from_str("unknown file type"))?;
-
+    let img = load_image(&file_data, MediaType::from_mime_type(src_type))
+        .map_err(|_| JsValue::from_str("Unknown file type"))?;
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(60.0),
@@ -118,20 +124,17 @@ pub async fn convert_image(
         ImageFormat::from_mime_type(src_type),
         ImageFormat::from_mime_type(target_type),
     );
-
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(80.0),
         &JsValue::from_str("Converting image"),
     );
     let output = write_image(&img, ImageFormat::from_mime_type(target_type), compression)
-        .map_err(|_| JsValue::from_str("error writing image"))?;
-
+        .map_err(|_| JsValue::from_str("Error writing image"))?;
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(100.0),
         &JsValue::from_str("Conversion complete"),
     );
-
     Ok(Uint8Array::from(output.as_slice()))
 }

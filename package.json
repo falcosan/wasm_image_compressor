@@ -1,6 +1,6 @@
 {
   "name": "wasm_image_compressor",
-  "version": "1.3.5",
+  "version": "1.3.6",
   "private": false,
   "license": "MIT",
   "repository": {
@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "nuxt dev",
-    "build": "nuxt build",
     "build:wasm": "./build.sh",
+    "build": "npm run build:wasm && nuxt build",
     "preview": "nuxt preview",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",
