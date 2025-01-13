@@ -18,11 +18,11 @@ enum CompressionFactor {
 
 fn parse_compression_factor(compression_factor: &JsValue) -> CompressionFactor {
     match compression_factor {
-        value if value.is_null() || value.is_falsy() => CompressionFactor::Skip,
+        value if value.as_f64() == Some(1.0) => CompressionFactor::Skip,
         value => value
             .as_f64()
             .map(|v| CompressionFactor::Value(v as f32))
-            .unwrap_or(CompressionFactor::Value(0.75)),
+            .unwrap_or(CompressionFactor::Value(0.8)),
     }
 }
 
@@ -80,7 +80,7 @@ fn write_image(
     let target_type = file_type.unwrap_or(ImageFormat::WebP);
     let final_img = match compression_factor {
         CompressionFactor::Value(compression) => {
-            let mut pix = Pixlzr::from_image(img, 36, 36);
+            let mut pix = Pixlzr::from_image(img, 64, 64u32);
             pix.shrink_by(FilterType::Lanczos3, compression);
             pix.to_image(FilterType::Nearest)
         }
