@@ -11,10 +11,6 @@ export const useImage = () => {
 
   const acceptList = ["image/*"].join(",");
 
-  const progressCallback = (progress: number, message: string): void => {
-    console.log(`Progress: ${progress}%, Message: ${message}`);
-  };
-
   const imageConverter = async (
     request: WorkerRequest
   ): Promise<WorkerResponse> => {
@@ -26,8 +22,7 @@ export const useImage = () => {
             inputFile,
             inputType,
             outputType,
-            compressionStrength,
-            progressCallback
+            compressionStrength
           );
           resolve(res);
         } catch (error) {

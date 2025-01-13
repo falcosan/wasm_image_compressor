@@ -1,6 +1,7 @@
 # WASM Image Compressor
 
-A powerful WebAssembly-based image compression library for efficient client-side image processing with flexible input options.
+A powerful WebAssembly-based image compression library for efficient client-side image processing with flexible input options.  
+You can choose between returning a **blob URL** or a raw **Uint8Array** of the compressed image.
 
 ## Installation
 
@@ -23,48 +24,94 @@ import module_or_path from "wasm_image_compressor/lib/index_bg.wasm?url";
 await initWasm({ module_or_path });
 ```
 
-2. Import the `convertImage` function:
+2. Import the functions you need:
 
 ```javascript
-import { convertImage } from "wasm_image_compressor";
+import {
+  convertImage, // Returns a blob URL of the compressed image
+  convertImageAsUint8Array, // Returns a Uint8Array of the compressed image
+} from "wasm_image_compressor";
 ```
 
 ## Usage
 
-The `convertImage` function supports two input types: **URL** and **Uint8Array**
+Both `convertImage` and `convertImageAsUint8Array` support two input types: **URL** and **Uint8Array**.
 
-### Compress Image from URL
+### 1. Returning a Blob URL
+
+Use `convertImage` if you want to receive a blob URL of the compressed image, which can be directly used as an `<img src="...">` value.
+
+#### Compress Image from URL
 
 ```javascript
-const compressedImage = await convertImage(
+const compressedBlobUrl = await convertImage(
   "https://example.com/image.jpg", // Image URL
   "image/jpeg", // Source image type
   "image/webp", // Target image type
-  0.75, // Compression strength (0-1)
-  (progress, message) => {
-    console.log(`${progress}% - ${message}`);
-  }
+  0.75 // Compression strength (0-1)
 );
+
+// Now you can directly use the blob URL in an <img> tag:
+// document.getElementById("myImage").src = compressedBlobUrl;
 ```
 
-### Compress Image from Uint8Array
+#### Compress Image from Uint8Array
 
 ```javascript
 const uint8ArrayInput = new Uint8Array([
   /* image binary data */
 ]);
-const compressedImage = await convertImage(
-  uint8ArrayInput, // Image as Uint8Array
-  "image/jpeg", // Source image type
-  "image/webp", // Target image type
-  0.75, // Compression strength (0-1)
-  (progress, message) => {
-    console.log(`${progress}% - ${message}`);
-  }
+const compressedBlobUrl = await convertImage(
+  uint8ArrayInput,
+  "image/jpeg",
+  "image/webp",
+  0.75
 );
+
+// Use the blob URL (e.g., assign it to an <img> or store it for later use).
+```
+
+### 2. Returning a Uint8Array
+
+Use `convertImageAsUint8Array` if you want the raw compressed bytes for more customized handling.
+
+#### Compress Image from URL (Uint8Array result)
+
+```javascript
+const compressedBytes = await convertImageAsUint8Array(
+  "https://example.com/image.png",
+  "image/png",
+  "image/jpeg",
+  0.8
+);
+
+// compressedBytes is now a Uint8Array with your compressed image data.
+```
+
+#### Compress Image from Uint8Array (Uint8Array result)
+
+```javascript
+const uint8ArrayInput = new Uint8Array([
+  /* image binary data */
+]);
+const compressedBytes = await convertImageAsUint8Array(
+  uint8ArrayInput,
+  "image/png",
+  "image/webp",
+  0.8
+);
+
+// You can then handle the Uint8Array as needed, e.g., convert it to a Blob or store it.
 ```
 
 ## API Reference
+
+Each function shares the same parameters, but returns different data types:
+
+| Function Name                | Return Type       | Description                                 |
+| ---------------------------- | ----------------- | ------------------------------------------- |
+| **convertImage**             | string (Blob URL) | Converts an image and returns a blob URL    |
+| **convertImageAsUint8Array** | Uint8Array        | Converts an image and returns the raw bytes |
 
 #### Parameters
 
@@ -74,14 +121,6 @@ const compressedImage = await convertImage(
 | `srcType`     | string            | Type of the source image (e.g., "image/jpeg", "image/png")         |
 | `targetType`  | string            | Desired type for the output image (e.g., "image/webp")             |
 | `compression` | number            | Compression level (0-1), lower values result in higher compression |
-| `callback`    | function          | Progress update callback function                                  |
-
-#### Callback Function
-
-The `callback` function receives two arguments:
-
-- `progress` (number): Conversion progress (0-100)
-- `message` (string): Description of the current conversion stage
 
 #### Supported Image Formats
 

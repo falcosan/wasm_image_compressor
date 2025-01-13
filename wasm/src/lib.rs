@@ -1,6 +1,6 @@
 use error::ConvertError;
 use image::{DynamicImage, ImageFormat};
-use js_sys::{Array, Function, Uint8Array};
+use js_sys::{Array, Uint8Array};
 use media_type::MediaType;
 use pixlzr::{FilterType, Pixlzr};
 use std::io::Cursor;
@@ -33,21 +33,6 @@ fn load_image(file: &[u8], source_type: Option<MediaType>) -> Result<DynamicImag
             .map_err(|_| ConvertError::UnknownFileType("Failed to load image from memory".into())),
     }
 }
-
-fn write_image(
-    img: &DynamicImage,
-    file_type: Option<ImageFormat>,
-    compression_factor: f32,
-) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let target_type = file_type.unwrap_or(ImageFormat::WebP);
-    let mut pix = Pixlzr::from_image(img, 64, 64);
-    pix.shrink_by(FilterType::Lanczos3, compression_factor);
-    let compressed_img = pix.to_image(FilterType::Nearest);
-    let mut buffer = Vec::with_capacity(8192);
-    compressed_img.write_to(&mut Cursor::new(&mut buffer), target_type)?;
-    Ok(buffer)
-}
-
 fn process_image(
     img: DynamicImage,
     source_type: Option<ImageFormat>,
@@ -70,27 +55,26 @@ fn process_image(
         _ => i,
     }
 }
-
-#[wasm_bindgen(js_name = convertImage)]
-pub async fn convert_image(
+fn write_image(
+    img: &DynamicImage,
+    file_type: Option<ImageFormat>,
+    compression_factor: f32,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let target_type = file_type.unwrap_or(ImageFormat::WebP);
+    let mut pix = Pixlzr::from_image(img, 64, 64);
+    pix.shrink_by(FilterType::Lanczos3, compression_factor);
+    let compressed_img = pix.to_image(FilterType::Nearest);
+    let mut buffer = Vec::with_capacity(8192);
+    compressed_img.write_to(&mut Cursor::new(&mut buffer), target_type)?;
+    Ok(buffer)
+}
+async fn convert_image_internal(
     file_input: &JsValue,
     src_type: &str,
     target_type: &str,
     compression: f32,
-    cb: &Function,
-) -> Result<JsValue, JsValue> {
-    let this = JsValue::NULL;
-    let _ = cb.call2(
-        &this,
-        &JsValue::from_f64(10.0),
-        &JsValue::from_str("Starting conversion"),
-    );
+) -> Result<Vec<u8>, JsValue> {
     let file_data = if file_input.is_string() {
-        let _ = cb.call2(
-            &this,
-            &JsValue::from_f64(35.0),
-            &JsValue::from_str("Fetching image"),
-        );
         fetch_image(&file_input.as_string().unwrap()).await?
     } else if file_input.is_instance_of::<Uint8Array>() {
         Uint8Array::new(file_input).to_vec()
@@ -99,30 +83,27 @@ pub async fn convert_image(
             "Invalid input type. Must be a URL or Uint8Array.",
         ));
     };
-    let _ = cb.call2(
-        &this,
-        &JsValue::from_f64(50.0),
-        &JsValue::from_str("Loading image"),
-    );
     let img = load_image(&file_data, MediaType::from_mime_type(src_type))
         .map_err(|_| JsValue::from_str("Unknown file type"))?;
-    let _ = cb.call2(
-        &this,
-        &JsValue::from_f64(60.0),
-        &JsValue::from_str("Processing image"),
-    );
     let img = process_image(
         img,
         ImageFormat::from_mime_type(src_type),
         ImageFormat::from_mime_type(target_type),
     );
-    let _ = cb.call2(
-        &this,
-        &JsValue::from_f64(80.0),
-        &JsValue::from_str("Converting image"),
-    );
     let output = write_image(&img, ImageFormat::from_mime_type(target_type), compression)
         .map_err(|_| JsValue::from_str("Error writing image"))?;
+
+    Ok(output)
+}
+#[wasm_bindgen(js_name = convertImage)]
+pub async fn convert_image(
+    file_input: &JsValue,
+    src_type: &str,
+    target_type: &str,
+    compression: f32,
+) -> Result<String, JsValue> {
+    let output = convert_image_internal(file_input, src_type, target_type, compression).await?;
+
     let final_format = ImageFormat::from_mime_type(target_type).unwrap_or(ImageFormat::WebP);
     let mime_type = MediaType::guess_mime_type(final_format);
     let array = Uint8Array::from(output.as_slice());
@@ -134,10 +115,15 @@ pub async fn convert_image(
         .map_err(|_| JsValue::from_str("Failed to create Blob"))?;
     let url = Url::create_object_url_with_blob(&blob)
         .map_err(|_| JsValue::from_str("Failed to create Blob URL"))?;
-    let _ = cb.call2(
-        &this,
-        &JsValue::from_f64(100.0),
-        &JsValue::from_str("Conversion complete"),
-    );
-    Ok(JsValue::from_str(&url))
+    Ok(url)
+}
+#[wasm_bindgen(js_name = convertImageAsUint8Array)]
+pub async fn convert_image_as_uint8array(
+    file_input: &JsValue,
+    src_type: &str,
+    target_type: &str,
+    compression: f32,
+) -> Result<Uint8Array, JsValue> {
+    let output = convert_image_internal(file_input, src_type, target_type, compression).await?;
+    Ok(Uint8Array::from(output.as_slice()))
 }
