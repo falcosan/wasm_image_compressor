@@ -5,9 +5,28 @@ use media_type::MediaType;
 use pixlzr::{FilterType, Pixlzr};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{Request, RequestInit, RequestMode, Response};
 
 mod error;
 mod media_type;
+
+async fn fetch_image(url: &str) -> Result<Vec<u8>, JsValue> {
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
+
+    let request = Request::new_with_str_and_init(url, &opts)?;
+
+    let window = web_sys::window().ok_or("No window available")?;
+    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    let resp: Response = resp_value.dyn_into()?;
+
+    let data = JsFuture::from(resp.array_buffer()?).await?;
+    let uint8_array = Uint8Array::new(&data);
+
+    Ok(uint8_array.to_vec())
+}
 
 fn load_image(
     file: &[u8],
@@ -60,8 +79,8 @@ fn process_image(
 }
 
 #[wasm_bindgen(js_name = convertImage)]
-pub fn convert_image(
-    file: &Uint8Array,
+pub async fn convert_image(
+    image_url: &str,
     src_type: &str,
     target_type: &str,
     compression: f32,
@@ -73,17 +92,25 @@ pub fn convert_image(
         &JsValue::from_f64(10.0),
         &JsValue::from_str("Starting conversion"),
     );
-    let file = file.to_vec();
+
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(35.0),
+        &JsValue::from_str("Fetching image"),
+    );
+    let file = fetch_image(image_url).await?;
+
+    let _ = cb.call2(
+        &this,
+        &JsValue::from_f64(50.0),
         &JsValue::from_str("Loading image"),
     );
     let img = load_image(&file, MediaType::from_mime_type(src_type))
         .map_err(|_| JsValue::from_str("unknown file type"))?;
+
     let _ = cb.call2(
         &this,
-        &JsValue::from_f64(50.0),
+        &JsValue::from_f64(60.0),
         &JsValue::from_str("Processing image"),
     );
     let img = process_image(
@@ -91,17 +118,20 @@ pub fn convert_image(
         ImageFormat::from_mime_type(src_type),
         ImageFormat::from_mime_type(target_type),
     );
+
     let _ = cb.call2(
         &this,
-        &JsValue::from_f64(70.0),
+        &JsValue::from_f64(80.0),
         &JsValue::from_str("Converting image"),
     );
     let output = write_image(&img, ImageFormat::from_mime_type(target_type), compression)
         .map_err(|_| JsValue::from_str("error writing image"))?;
+
     let _ = cb.call2(
         &this,
         &JsValue::from_f64(100.0),
         &JsValue::from_str("Conversion complete"),
     );
+
     Ok(Uint8Array::from(output.as_slice()))
 }
