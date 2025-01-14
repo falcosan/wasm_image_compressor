@@ -31,8 +31,8 @@ export const useImage = () => {
       });
 
       return {
-        success: true,
         data: result,
+        success: true,
       };
     } catch (error) {
       return {

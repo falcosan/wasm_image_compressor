@@ -2,7 +2,7 @@
 const props = defineProps<{
   name: string;
   label: string;
-  modelValue: string;
+  modelValue: number;
   placeholder: string;
 }>();
 
@@ -14,15 +14,13 @@ const data = useVModel(props, "modelValue");
     <label :for="name" class="block mb-2 text-sm font-medium text-white">
       {{ label }}
     </label>
-    <select
+    <input
       v-model="data"
-      :name="name"
       class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-    >
-      <option selected hidden>
-        {{ placeholder }}
-      </option>
-      <slot />
-    </select>
+      min="0"
+      max="1"
+      step="0.1"
+      type="number"
+    />
   </div>
 </template>

@@ -5,6 +5,7 @@ const { getMimeType, imageConverter, inputFileEndings, downloadImage } =
   useImage();
 
 const file = ref<File>();
+const compressionFactor = ref(0.1);
 const outputType = ref("image/webp" as keyof typeof inputFileEndings);
 
 const trimFileExtension = (filename: string) => {
@@ -19,17 +20,16 @@ const startConversion = async () => {
     const reader = new FileReader();
 
     reader.onloadend = async (e) => {
-      const res = e.target?.result as ArrayBuffer;
-      const arr = new Uint8Array(res);
+      const res = e.target?.result;
 
-      if (!file.value) return;
+      if (!res || !file.value) return;
 
       try {
         const params: WorkerRequest = {
-          inputFile: arr,
-          compressionFactor: 0.1,
           outputType: outputType.value,
           inputType: getMimeType(file.value),
+          compressionFactor: compressionFactor.value,
+          inputFile: new Uint8Array(res as ArrayBuffer),
         };
 
         const response: WorkerResponse = await imageConverter(params);
@@ -53,12 +53,19 @@ const startConversion = async () => {
 </script>
 
 <template>
-  <div class="w-3/4 max-w-2xl">
+  <div class="w-screen max-w-2xl p-5">
     <InputsFile v-model:file="file" />
-    <div class="flex flex-row items-end space-x-10 pt-3">
-      <div class="grow">
+    <div class="mt-5">
+      <div class="flex flex-wrap grow gap-10">
+        <InputsNumber
+          v-model="compressionFactor"
+          name="compressorFactor"
+          label="Compression factor"
+          placeholder="Compression factor"
+        />
         <InputsSelect
           v-model="outputType"
+          class="flex-auto"
           name="outputType"
           label="Select a File Type"
           placeholder="Select a File Type"
@@ -72,7 +79,15 @@ const startConversion = async () => {
           </option>
         </InputsSelect>
       </div>
-      <InputsButton @click="startConversion">Convert</InputsButton>
+      <div class="flex justify-end">
+        <button
+          type="button"
+          class="flex items-center justify-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 mt-5 focus:outline-none"
+          @click="startConversion"
+        >
+          Convert
+        </button>
+      </div>
     </div>
   </div>
 </template>
