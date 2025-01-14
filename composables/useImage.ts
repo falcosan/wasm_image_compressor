@@ -15,14 +15,14 @@ export const useImage = () => {
     request: WorkerRequest
   ): Promise<WorkerResponse> => {
     try {
-      const { inputFile, inputType, outputType, compressionStrength } = request;
+      const { inputFile, inputType, outputType, compressionFactor } = request;
       const result = await new Promise<string>((resolve, reject) => {
         try {
           const res = convertImage(
             inputFile,
             inputType,
             outputType,
-            compressionStrength
+            compressionFactor
           );
           resolve(res);
         } catch (error) {

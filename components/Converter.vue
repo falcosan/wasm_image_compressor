@@ -27,7 +27,7 @@ const startConversion = async () => {
       try {
         const params: WorkerRequest = {
           inputFile: arr,
-          compressionStrength: 1,
+          compressionFactor: 0,
           outputType: outputType.value,
           inputType: getMimeType(file.value),
         };
