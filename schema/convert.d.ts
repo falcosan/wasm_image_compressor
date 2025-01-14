@@ -8,5 +8,5 @@ export interface WorkerRequest {
   inputFile: string | Uint8Array;
   inputType: string;
   outputType: string;
-  compressionStrength: number;
+  compressionFactor: number;
 }
