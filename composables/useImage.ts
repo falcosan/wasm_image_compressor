@@ -50,7 +50,7 @@ export const useImage = () => {
 
       if (extension !== undefined) {
         Object.entries(inputFileEndings).forEach(([mimeType, ext]) => {
-          if (ext === extension) return mimeType;
+          if (ext === extension.toLowerCase()) return mimeType;
         });
       }
 
