@@ -1,16 +1,17 @@
 use image::ImageFormat;
 
-pub(crate) enum MediaType {
+#[derive(Clone, Copy)]
+pub enum MediaType {
     Raster(ImageFormat),
 }
 impl MediaType {
-    pub(crate) fn from_mime_type(mime_type: &str) -> Option<Self> {
+    pub fn from_mime_type(mime_type: &str) -> Option<Self> {
         match ImageFormat::from_mime_type(mime_type) {
             Some(format) => Some(Self::Raster(format)),
             None => from_custom_mime_type(mime_type),
         }
     }
-    pub(crate) fn guess_mime_type(format: ImageFormat) -> &'static str {
+    pub fn guess_mime_type(format: ImageFormat) -> &'static str {
         match format {
             ImageFormat::Png => "image/png",
             ImageFormat::Jpeg => "image/jpeg",

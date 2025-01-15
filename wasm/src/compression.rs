@@ -8,55 +8,52 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
 
-pub(crate) enum Compression {}
-
-pub(crate) enum CompressionFactor {
+#[derive(Clone, Copy)]
+pub(super) enum CompressionFactor {
     Value(f32),
     Skip,
 }
 
-impl Compression {
-    pub(crate) fn parse_compression_factor(compression_factor: &JsValue) -> CompressionFactor {
-        match compression_factor {
-            value if value.as_f64() == Some(1.0) => CompressionFactor::Skip,
-            value => value
-                .as_f64()
-                .map(|v| CompressionFactor::Value(v as f32))
-                .unwrap_or(CompressionFactor::Value(0.8)),
-        }
+pub fn parse_compression_factor(compression_factor: &JsValue) -> CompressionFactor {
+    match compression_factor {
+        value if value.as_f64() == Some(1.0) => CompressionFactor::Skip,
+        value => value
+            .as_f64()
+            .map(|v| CompressionFactor::Value(v as f32))
+            .unwrap_or(CompressionFactor::Value(0.8)),
     }
+}
 
-    pub(crate) async fn convert_image_internal(
-        file_input: &JsValue,
-        src_type: &str,
-        target_type: &str,
-        compression_factor: CompressionFactor,
-    ) -> Result<Vec<u8>, JsValue> {
-        let file_data = if file_input.is_string() {
-            fetch_image(&file_input.as_string().unwrap()).await?
-        } else if file_input.is_instance_of::<Uint8Array>() {
-            Uint8Array::new(file_input).to_vec()
-        } else {
-            return Err(JsValue::from_str(
-                "Invalid input type. Must be a URL or Uint8Array.",
-            ));
-        };
-        let img = load_image(&file_data, MediaType::from_mime_type(src_type))
-            .map_err(|_| JsValue::from_str("Unknown file type"))?;
-        let img = process_image(
-            img,
-            ImageFormat::from_mime_type(src_type),
-            ImageFormat::from_mime_type(target_type),
-        );
-        let output = parallel_write_image(
-            &img,
-            ImageFormat::from_mime_type(target_type),
-            compression_factor,
-        )
-        .map_err(|_| JsValue::from_str("Error writing image"))?;
+pub async fn convert_image_internal(
+    file_input: &JsValue,
+    src_type: &str,
+    target_type: &str,
+    compression_factor: CompressionFactor,
+) -> Result<Vec<u8>, JsValue> {
+    let file_data = if file_input.is_string() {
+        fetch_image(&file_input.as_string().unwrap()).await?
+    } else if file_input.is_instance_of::<Uint8Array>() {
+        Uint8Array::new(file_input).to_vec()
+    } else {
+        return Err(JsValue::from_str(
+            "Invalid input type. Must be a URL or Uint8Array.",
+        ));
+    };
+    let img = load_image(&file_data, MediaType::from_mime_type(src_type))
+        .map_err(|_| JsValue::from_str("Unknown file type"))?;
+    let img = process_image(
+        img,
+        ImageFormat::from_mime_type(src_type),
+        ImageFormat::from_mime_type(target_type),
+    );
+    let output = parallel_write_image(
+        &img,
+        ImageFormat::from_mime_type(target_type),
+        compression_factor,
+    )
+    .map_err(|_| JsValue::from_str("Error writing image"))?;
 
-        Ok(output)
-    }
+    Ok(output)
 }
 
 async fn fetch_image(url: &str) -> Result<Vec<u8>, JsValue> {

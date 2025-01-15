@@ -2,7 +2,7 @@ mod compression;
 mod error;
 mod media_type;
 
-use compression::Compression;
+use compression::{convert_image_internal, parse_compression_factor};
 use image::ImageFormat;
 use js_sys::{Array, Uint8Array};
 use media_type::MediaType;
@@ -16,9 +16,8 @@ pub async fn convert_image(
     target_type: &str,
     compression_factor: JsValue,
 ) -> Result<String, JsValue> {
-    let compression = Compression::parse_compression_factor(&compression_factor);
-    let output =
-        Compression::convert_image_internal(file_input, src_type, target_type, compression).await?;
+    let compression = parse_compression_factor(&compression_factor);
+    let output = convert_image_internal(file_input, src_type, target_type, compression).await?;
     let final_format = ImageFormat::from_mime_type(target_type).unwrap_or(ImageFormat::WebP);
     let mime_type = MediaType::guess_mime_type(final_format);
     let array = Uint8Array::from(output.as_slice());
@@ -39,8 +38,7 @@ pub async fn convert_image_as_uint8array(
     target_type: &str,
     compression_factor: JsValue,
 ) -> Result<Uint8Array, JsValue> {
-    let compression = Compression::parse_compression_factor(&compression_factor);
-    let output =
-        Compression::convert_image_internal(file_input, src_type, target_type, compression).await?;
+    let compression = parse_compression_factor(&compression_factor);
+    let output = convert_image_internal(file_input, src_type, target_type, compression).await?;
     Ok(Uint8Array::from(output.as_slice()))
 }
