@@ -1,7 +1,7 @@
 use image::ImageFormat;
 
 #[derive(Clone, Copy)]
-pub enum MediaType {
+pub(super) enum MediaType {
     Raster(ImageFormat),
 }
 impl MediaType {

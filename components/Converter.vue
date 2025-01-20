@@ -2,7 +2,7 @@
 const { convertImage, inputFileEndings, downloadImage } = useImage();
 
 const file = ref<File>();
-const compressionFactor = ref(0.1);
+const compressionFactor = ref(1);
 const outputType = ref("image/webp" as keyof typeof inputFileEndings);
 
 const trimFileExtension = (filename: string) => {

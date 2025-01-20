@@ -8,6 +8,10 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
 
+const MAX_ICO_SIZE: u32 = 256;
+const THUMBNAIL_SIZE: u32 = 64;
+const DEFAULT_COMPRESSION: f32 = 0.8;
+
 #[derive(Clone, Copy)]
 pub(super) enum CompressionFactor {
     Value(f32),
@@ -18,7 +22,7 @@ pub fn parse_compression_factor(compression_factor: &JsValue) -> CompressionFact
     match compression_factor.as_f64() {
         Some(1.0) => CompressionFactor::Skip,
         Some(v) => CompressionFactor::Value(v as f32),
-        None => CompressionFactor::Value(0.8),
+        None => CompressionFactor::Value(DEFAULT_COMPRESSION),
     }
 }
 
@@ -40,7 +44,7 @@ pub async fn convert_image_internal(
 
     let src_media_type = MediaType::from_mime_type(src_type);
     let img = load_image(&file_data, src_media_type)
-        .map_err(|e| JsValue::from_str(&format!("Failed to load image: {}", e)))?;
+        .map_err(|_| JsValue::from_str("Failed to load image"))?;
 
     let src_format = ImageFormat::from_mime_type(src_type);
     let target_format = ImageFormat::from_mime_type(target_type);
@@ -52,7 +56,7 @@ pub async fn convert_image_internal(
         compression_factor,
         &file_data,
     )
-    .map_err(|e| JsValue::from_str(&format!("Error writing image: {}", e)))?;
+    .map_err(|_| JsValue::from_str("Error writing image"))?;
 
     Ok(output)
 }
@@ -62,7 +66,7 @@ async fn fetch_image(url: &str) -> Result<Vec<u8>, JsValue> {
     opts.set_method("GET");
     opts.set_mode(RequestMode::Cors);
     let request = Request::new_with_str_and_init(url, &opts)?;
-    let window = web_sys::window().ok_or("No window available")?;
+    let window = web_sys::window().ok_or_else(|| JsValue::from_str("No window available"))?;
     let resp: Response = JsFuture::from(window.fetch_with_request(&request))
         .await?
         .dyn_into()?;
@@ -97,7 +101,11 @@ fn process_image(
         | ImageFormat::Farbfeld
         | ImageFormat::Pnm
         | ImageFormat::Tga => DynamicImage::ImageRgb8(img.to_rgb8()),
-        ImageFormat::Ico => img.resize_exact(256, 256, image::imageops::FilterType::Lanczos3),
+        ImageFormat::Ico => img.resize_exact(
+            MAX_ICO_SIZE,
+            MAX_ICO_SIZE,
+            image::imageops::FilterType::Lanczos3,
+        ),
         ImageFormat::OpenExr => DynamicImage::ImageRgba32F(img.to_rgba32f()),
         _ => img,
     }
@@ -108,32 +116,27 @@ fn write_image(
     file_type: Option<ImageFormat>,
     compression_factor: CompressionFactor,
     original_data: &[u8],
-) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+) -> Result<Vec<u8>, &'static str> {
     let target_type = file_type.unwrap_or(ImageFormat::WebP);
     let mut buffer = Vec::with_capacity(original_data.len());
     let final_img = match compression_factor {
         CompressionFactor::Value(compression) => {
-            let mut pix = Pixlzr::from_image(img, 64, 64u32);
+            let mut pix = Pixlzr::from_image(img, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
             pix.shrink_by(FilterType::Lanczos3, compression);
             pix.to_image(FilterType::Nearest)
         }
         CompressionFactor::Skip => img.clone(),
     };
 
-    let format = match target_type {
-        ImageFormat::Jpeg => ImageFormat::Jpeg,
-        ImageFormat::Png => ImageFormat::Png,
-        ImageFormat::WebP => ImageFormat::WebP,
-        _ => ImageFormat::from(target_type),
-    };
+    final_img
+        .write_to(&mut Cursor::new(&mut buffer), target_type)
+        .map_err(|_| "Failed to write image")?;
 
-    final_img.write_to(&mut Cursor::new(&mut buffer), format)?;
-
-    if buffer.len() > original_data.len() {
-        Ok(original_data.to_vec())
+    Ok(if buffer.len() > original_data.len() {
+        original_data.to_vec()
     } else {
-        Ok(buffer)
-    }
+        buffer
+    })
 }
 
 fn parallel_write_image(
@@ -141,7 +144,11 @@ fn parallel_write_image(
     file_type: Option<ImageFormat>,
     compression_factor: CompressionFactor,
     original_data: &[u8],
-) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    rayon::spawn_fifo(|| {});
+) -> Result<Vec<u8>, &'static str> {
+    rayon::scope(|s| {
+        s.spawn(|_| {
+            let _ = write_image(img, file_type, compression_factor, original_data);
+        })
+    });
     write_image(img, file_type, compression_factor, original_data)
 }
