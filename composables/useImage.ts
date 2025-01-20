@@ -1,4 +1,4 @@
-import { convertImage } from "wasm_image_compressor";
+import { convertImage as wasmConvertImage } from "wasm_image_compressor";
 import type { WorkerRequest, WorkerResponse } from "@/schema/convert";
 
 export const useImage = () => {
@@ -11,6 +11,25 @@ export const useImage = () => {
 
   const acceptList = ["image/*"].join(",");
 
+  const convertImage = async ({
+    fromMIMEType,
+    fileOrURL,
+    compression = 0.5,
+  }: {
+    compression?: number;
+    fileOrURL: string | Uint8Array;
+    fromMIMEType: (typeof inputFileEndings)[keyof typeof inputFileEndings];
+  }) => {
+    const convertedImage = await wasmConvertImage(
+      fileOrURL,
+      fromMIMEType,
+      "image/webp",
+      compression
+    );
+
+    return convertedImage;
+  };
+
   const imageConverter = async (
     request: WorkerRequest
   ): Promise<WorkerResponse> => {
@@ -18,7 +37,7 @@ export const useImage = () => {
       const { inputFile, inputType, outputType, compressionFactor } = request;
       const result = await new Promise<string>((resolve, reject) => {
         try {
-          const res = convertImage(
+          const res = wasmConvertImage(
             inputFile,
             inputType,
             outputType,
@@ -72,6 +91,7 @@ export const useImage = () => {
   return {
     acceptList,
     getMimeType,
+    convertImage,
     downloadImage,
     imageConverter,
     inputFileEndings,
