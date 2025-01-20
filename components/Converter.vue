@@ -53,41 +53,39 @@ const startConversion = async () => {
 </script>
 
 <template>
-  <div class="w-screen max-w-2xl p-5">
-    <InputsFile v-model:file="file" />
-    <div class="mt-5">
-      <div class="flex flex-wrap grow gap-10">
-        <InputsNumber
-          v-model="compressionFactor"
-          name="compressorFactor"
-          label="Compression factor"
-          placeholder="Compression factor"
-        />
-        <InputsSelect
-          v-model="outputType"
-          class="flex-auto"
-          name="outputType"
-          label="Select a File Type"
-          placeholder="Select a File Type"
+  <InputsFile v-model:file="file" />
+  <div class="mt-5">
+    <div class="flex flex-wrap grow gap-10">
+      <InputsNumber
+        v-model="compressionFactor"
+        name="compressorFactor"
+        label="Compression factor"
+        placeholder="Compression factor"
+      />
+      <InputsSelect
+        v-model="outputType"
+        class="flex-auto"
+        name="outputType"
+        label="Select a File Type"
+        placeholder="Select a File Type"
+      >
+        <option
+          v-for="(imageType, ending) in inputFileEndings"
+          :key="ending"
+          :value="ending"
         >
-          <option
-            v-for="(imageType, ending) in inputFileEndings"
-            :key="ending"
-            :value="ending"
-          >
-            {{ imageType }}
-          </option>
-        </InputsSelect>
-      </div>
-      <div class="flex justify-end">
-        <button
-          type="button"
-          class="flex items-center justify-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 mt-5 focus:outline-none"
-          @click="startConversion"
-        >
-          Convert
-        </button>
-      </div>
+          {{ imageType }}
+        </option>
+      </InputsSelect>
+    </div>
+    <div class="flex justify-end">
+      <button
+        type="button"
+        class="flex items-center justify-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 mt-5 focus:outline-none"
+        @click="startConversion"
+      >
+        Convert
+      </button>
     </div>
   </div>
 </template>
