@@ -10,7 +10,7 @@
     <div class="w-screen max-w-2xl p-5">
       <Image
         class="w-full mb-10 rounded"
-        src="https://static.penumbracosmica.earth/strapi-uploads/assets/blog_atance_datos_agricultura_00_c1492da2dd.png "
+        src="https://psymedia.co.za/wp-content/uploads/ozora-from-the-hill-1200x900.jpg"
       />
       <Converter />
     </div>
