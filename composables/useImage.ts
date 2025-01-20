@@ -2,9 +2,9 @@ import { convertImage as wasmConvertImage } from "wasm_image_compressor";
 
 export const useImage = () => {
   const inputFileEndings = {
+    "image/png": "png",
     "image/webp": "webp",
     "image/jpeg": "jpeg",
-    "image/png": "png",
     "image/x-icon": "ico",
   } as const;
 
