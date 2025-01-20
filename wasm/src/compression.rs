@@ -15,12 +15,10 @@ pub(super) enum CompressionFactor {
 }
 
 pub fn parse_compression_factor(compression_factor: &JsValue) -> CompressionFactor {
-    match compression_factor {
-        value if value.as_f64() == Some(1.0) => CompressionFactor::Skip,
-        value => value
-            .as_f64()
-            .map(|v| CompressionFactor::Value(v as f32))
-            .unwrap_or(CompressionFactor::Value(0.8)),
+    match compression_factor.as_f64() {
+        Some(1.0) => CompressionFactor::Skip,
+        Some(v) => CompressionFactor::Value(v as f32),
+        None => CompressionFactor::Value(0.8),
     }
 }
 
@@ -30,28 +28,31 @@ pub async fn convert_image_internal(
     target_type: &str,
     compression_factor: CompressionFactor,
 ) -> Result<Vec<u8>, JsValue> {
-    let file_data = if file_input.is_string() {
-        fetch_image(&file_input.as_string().unwrap()).await?
-    } else if file_input.is_instance_of::<Uint8Array>() {
-        Uint8Array::new(file_input).to_vec()
-    } else {
-        return Err(JsValue::from_str(
-            "Invalid input type. Must be a URL or Uint8Array.",
-        ));
+    let file_data = match file_input {
+        v if v.is_string() => fetch_image(&v.as_string().unwrap()).await?,
+        v if v.is_instance_of::<Uint8Array>() => Uint8Array::new(v).to_vec(),
+        _ => {
+            return Err(JsValue::from_str(
+                "Invalid input type. Must be a URL or Uint8Array.",
+            ))
+        }
     };
-    let img = load_image(&file_data, MediaType::from_mime_type(src_type))
-        .map_err(|_| JsValue::from_str("Unknown file type"))?;
-    let img = process_image(
-        img,
-        ImageFormat::from_mime_type(src_type),
-        ImageFormat::from_mime_type(target_type),
-    );
+
+    let src_media_type = MediaType::from_mime_type(src_type);
+    let img = load_image(&file_data, src_media_type)
+        .map_err(|e| JsValue::from_str(&format!("Failed to load image: {}", e)))?;
+
+    let src_format = ImageFormat::from_mime_type(src_type);
+    let target_format = ImageFormat::from_mime_type(target_type);
+    let processed_img = process_image(img, src_format, target_format);
+
     let output = parallel_write_image(
-        &img,
-        ImageFormat::from_mime_type(target_type),
+        &processed_img,
+        target_format,
         compression_factor,
+        &file_data,
     )
-    .map_err(|_| JsValue::from_str("Error writing image"))?;
+    .map_err(|e| JsValue::from_str(&format!("Error writing image: {}", e)))?;
 
     Ok(output)
 }
@@ -84,21 +85,21 @@ fn process_image(
     source_type: Option<ImageFormat>,
     target_type: Option<ImageFormat>,
 ) -> DynamicImage {
-    let t = target_type.unwrap_or(ImageFormat::WebP);
-    let i = if source_type == Some(ImageFormat::Hdr) {
+    let target = target_type.unwrap_or(ImageFormat::WebP);
+    let img = if source_type == Some(ImageFormat::Hdr) {
         DynamicImage::ImageRgba8(img.to_rgba8())
     } else {
         img
     };
-    match t {
+    match target {
         ImageFormat::Jpeg
         | ImageFormat::Qoi
         | ImageFormat::Farbfeld
         | ImageFormat::Pnm
-        | ImageFormat::Tga => DynamicImage::ImageRgb8(i.to_rgb8()),
-        ImageFormat::Ico => i.resize_exact(256, 256, image::imageops::FilterType::Lanczos3),
-        ImageFormat::OpenExr => DynamicImage::ImageRgba32F(i.to_rgba32f()),
-        _ => i,
+        | ImageFormat::Tga => DynamicImage::ImageRgb8(img.to_rgb8()),
+        ImageFormat::Ico => img.resize_exact(256, 256, image::imageops::FilterType::Lanczos3),
+        ImageFormat::OpenExr => DynamicImage::ImageRgba32F(img.to_rgba32f()),
+        _ => img,
     }
 }
 
@@ -106,8 +107,10 @@ fn write_image(
     img: &DynamicImage,
     file_type: Option<ImageFormat>,
     compression_factor: CompressionFactor,
+    original_data: &[u8],
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let target_type = file_type.unwrap_or(ImageFormat::WebP);
+    let mut buffer = Vec::with_capacity(original_data.len());
     let final_img = match compression_factor {
         CompressionFactor::Value(compression) => {
             let mut pix = Pixlzr::from_image(img, 64, 64u32);
@@ -116,16 +119,29 @@ fn write_image(
         }
         CompressionFactor::Skip => img.clone(),
     };
-    let mut buffer = Vec::with_capacity(8192);
-    final_img.write_to(&mut Cursor::new(&mut buffer), target_type)?;
-    Ok(buffer)
+
+    let format = match target_type {
+        ImageFormat::Jpeg => ImageFormat::Jpeg,
+        ImageFormat::Png => ImageFormat::Png,
+        ImageFormat::WebP => ImageFormat::WebP,
+        _ => ImageFormat::from(target_type),
+    };
+
+    final_img.write_to(&mut Cursor::new(&mut buffer), format)?;
+
+    if buffer.len() > original_data.len() {
+        Ok(original_data.to_vec())
+    } else {
+        Ok(buffer)
+    }
 }
 
 fn parallel_write_image(
     img: &DynamicImage,
     file_type: Option<ImageFormat>,
     compression_factor: CompressionFactor,
+    original_data: &[u8],
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     rayon::spawn_fifo(|| {});
-    write_image(img, file_type, compression_factor)
+    write_image(img, file_type, compression_factor, original_data)
 }
