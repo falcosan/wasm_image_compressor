@@ -103,13 +103,15 @@ const convertImageByCompression = async () => {
   if (!isRasterImage.value || !data.value) return;
 
   const newUrl = await convertImage({
-    compression: compression.value,
+    inputType: data.value.type,
+    compressionFactor: compression.value,
     fileOrURL: new Uint8Array(data.value.arr),
-    fromMIMEType: inputFileEndings[data.value.type],
   });
 
-  url.value = newUrl;
-  blobUrls.value.push(newUrl);
+  if (newUrl.data) {
+    url.value = newUrl.data;
+    blobUrls.value.push(newUrl.data);
+  }
 };
 
 const revokeBlobUrls = () => {

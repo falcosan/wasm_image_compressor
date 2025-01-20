@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type { WorkerRequest, WorkerResponse } from "@/schema/convert";
-
-const { getMimeType, imageConverter, inputFileEndings, downloadImage } =
-  useImage();
+const { convertImage, inputFileEndings, downloadImage } = useImage();
 
 const file = ref<File>();
 const compressionFactor = ref(0.1);
@@ -25,14 +22,14 @@ const startConversion = async () => {
       if (!res || !file.value) return;
 
       try {
-        const params: WorkerRequest = {
+        const params = {
           outputType: outputType.value,
-          inputType: getMimeType(file.value),
           compressionFactor: compressionFactor.value,
-          inputFile: new Uint8Array(res as ArrayBuffer),
+          fileOrURL: new Uint8Array(res as ArrayBuffer),
+          inputType: file.value.type as keyof typeof inputFileEndings,
         };
 
-        const response: WorkerResponse = await imageConverter(params);
+        const response = await convertImage(params);
 
         if (response.success && response.data) {
           const filename = trimFileExtension(file.value.name);
