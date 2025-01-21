@@ -123,8 +123,8 @@ const revokeBlobUrls = () => {
 
 onUnmounted(revokeBlobUrls);
 
-watch(reactiveURL, async (val) => {
-  url.value = val;
+watch([reactiveURL, compression], async (val) => {
+  if (val[0]) url.value = val[0];
   await refresh().then(convertImageByCompression);
 });
 watch(targetIsVisible, async (val) => {
