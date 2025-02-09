@@ -2,8 +2,8 @@
 const props = defineProps<{
   name: string;
   label: string;
-  modelValue: number;
   placeholder: string;
+  modelValue: number | string;
 }>();
 
 const data = useVModel(props, "modelValue");

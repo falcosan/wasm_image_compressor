@@ -3,7 +3,7 @@ const { convertImage, inputFileEndings, downloadImage } = useImage();
 
 const file = ref<File>();
 const urlFile = ref(
-  "https://psymedia.co.za/wp-content/uploads/ozora-from-the-hill-1200x900.jpg"
+  "https://a.storyblok.com/f/106240/1024x789/8a7a071380/roles.jpg"
 );
 const compressionFactor = ref(1);
 const outputType = ref("image/webp" as keyof typeof inputFileEndings);
