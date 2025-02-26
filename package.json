@@ -13,7 +13,6 @@
     "build:wasm": "./build.sh",
     "preview": "nuxt preview",
     "generate": "nuxt generate",
-    "preinstall": "npm run build:wasm",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
