@@ -165,11 +165,11 @@ export function convertImageAsUint8Array(file_input, src_type, target_type, comp
 }
 
 function __wbg_adapter_26(arg0, arg1, arg2) {
-    wasm.closure63_externref_shim(arg0, arg1, arg2);
+    wasm.closure64_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_65(arg0, arg1, arg2, arg3) {
-    wasm.closure106_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure107_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 /**
@@ -395,7 +395,7 @@ function __wbg_get_imports() {
         return ret;
     };
     imports.wbg.__wbindgen_closure_wrapper955 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 64, __wbg_adapter_26);
+        const ret = makeMutClosure(arg0, arg1, 65, __wbg_adapter_26);
         return ret;
     };
     imports.wbg.__wbindgen_init_externref_table = function() {

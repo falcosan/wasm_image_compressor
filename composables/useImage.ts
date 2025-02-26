@@ -4,7 +4,7 @@ export const useImage = () => {
   const inputFileEndings = {
     "image/png": "png",
     "image/webp": "webp",
-    "image/jpeg": "jpeg",
+    "image/jpeg": "jpg",
     "image/x-icon": "ico",
   } as const;
 
@@ -18,15 +18,14 @@ export const useImage = () => {
   }) => {
     try {
       const {
+        fileOrURL,
         inputType,
         compressionFactor = 0.5,
         outputType = "image/webp",
       } = params;
-      const inputFile =
-        "inputFile" in params ? params.inputFile : params.fileOrURL;
 
       const result = await wasmConvertImage(
-        inputFile,
+        fileOrURL,
         inputType,
         outputType,
         compressionFactor

@@ -2,9 +2,6 @@
 const { convertImage, inputFileEndings, downloadImage } = useImage();
 
 const file = ref<File>();
-const urlFile = ref(
-  "https://a.storyblok.com/f/106240/1024x789/8a7a071380/roles.jpg"
-);
 const compressionFactor = ref(1);
 const outputType = ref("image/webp" as keyof typeof inputFileEndings);
 
@@ -54,24 +51,14 @@ const startConversion = async () => {
 
 <template>
   <Html lang="en" />
-  <Title>Wasm Image Compressor</Title>
+  <Title>AP - Compressor</Title>
   <Head>
     <Link rel="icon" href="/favicon.ico" />
   </Head>
   <main
     class="flex flex-col min-h-dvh items-center justify-center bg-slate-800"
   >
-    <div class="w-screen max-w-2xl p-5 space-y-5">
-      <input
-        v-model="urlFile"
-        class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-      />
-      <Image
-        v-if="urlFile"
-        class="w-full rounded"
-        :src="urlFile"
-        :compression="compressionFactor"
-      />
+    <div class="w-full max-w-2xl p-5 space-y-5">
       <InputNumber
         v-model="compressionFactor"
         name="compressorFactor"

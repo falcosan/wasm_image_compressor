@@ -77,10 +77,15 @@ async fn fetch_image(url: &str) -> Result<Vec<u8>, JsValue> {
 fn load_image(file: &[u8], source_type: Option<MediaType>) -> Result<DynamicImage, ConvertError> {
     match source_type {
         Some(MediaType::Raster(file_type)) => {
-            image::load_from_memory_with_format(file, file_type).map_err(ConvertError::from)
+            match image::load_from_memory_with_format(file, file_type) {
+                Ok(img) => Ok(img),
+                Err(_) => image::load_from_memory(file).map_err(|e| {
+                    ConvertError::UnknownFileType(format!("Failed to load image: {}", e))
+                }),
+            }
         }
         None => image::load_from_memory(file)
-            .map_err(|_| ConvertError::UnknownFileType("Failed to load image from memory".into())),
+            .map_err(|e| ConvertError::UnknownFileType(format!("Failed to load image: {}", e))),
     }
 }
 
