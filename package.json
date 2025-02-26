@@ -19,7 +19,7 @@
     "publish": "npm run build:wasm && cd wasm/pkg && npm publish"
   },
   "dependencies": {
-    "wasm_image_compressor": "1.4.8"
+    "wasm_image_compressor": "file:./wasm/pkg"
   },
   "devDependencies": {
     "@iconify-json/simple-icons": "^1.2.26",
