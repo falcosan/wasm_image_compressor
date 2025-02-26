@@ -1,6 +1,6 @@
 [package]
 name = "wasm_image_compressor"
-version = "1.4.7"
+version = "1.4.8"
 edition = "2021"
 description = "wasm_image_compressor"
 authors = ["Daniele Falchetti <danielefalche@gmail.com>"]
@@ -21,7 +21,16 @@ wasm-bindgen-futures = "0.4"
 serde = { version = "1.0.218", features = ["derive"] }
 gloo-utils = { version = "0.2.0", features = ["serde"] }
 serde_json = { version = "1.0.139", default-features = false }
-web-sys = { version = "0.3", features = ["Url", "Blob", "BlobPropertyBag", "Request", "RequestInit", "RequestMode", "Response", "Window"] }
+web-sys = { version = "0.3", features = [
+  "Url",
+  "Blob",
+  "BlobPropertyBag",
+  "Request",
+  "RequestInit",
+  "RequestMode",
+  "Response",
+  "Window",
+] }
 
 [profile.release]
 lto = true

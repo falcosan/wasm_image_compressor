@@ -1,6 +1,6 @@
 {
   "name": "wasm_image_compressor",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "private": false,
   "license": "MIT",
   "repository": {
