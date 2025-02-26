@@ -12,8 +12,8 @@ cd "${WASM_DIR}"
 wasm-pack build --out-name index --target web --out-dir pkg/lib
 
 # Copy and move files
+rm "${LIB_DIR}/.gitignore"
 cp "${SCRIPT_DIR}/README.md" "${PKG_DIR}/"
-mv "${LIB_DIR}/.gitignore" "${PKG_DIR}/"
 mv "${LIB_DIR}/package.json" "${PKG_DIR}/"
 
 # Update package.json
