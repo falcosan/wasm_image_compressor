@@ -11,16 +11,16 @@ repository = "https://github.com/falcosan/wasm_image_compressor"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+thiserror = "2"
 pixlzr = "0.3.1"
 image = "0.25.5"
 rayon = "1.10.0"
 js-sys = "0.3.77"
-thiserror = "2.0.11"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 serde = { version = "1.0.218", features = ["derive"] }
+serde_json = { version = "1", default-features = false }
 gloo-utils = { version = "0.2.0", features = ["serde"] }
-serde_json = { version = "1.0.139", default-features = false }
 web-sys = { version = "0.3", features = [
   "Url",
   "Blob",
