@@ -27,7 +27,7 @@
   "devDependencies": {
     "@iconify-json/simple-icons": "^1.2.27",
     "@nuxt/eslint": "^1.1.0",
-    "@vueuse/nuxt": "^12.7.0",
+    "@vueuse/nuxt": "^12.8.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.2"
   }
