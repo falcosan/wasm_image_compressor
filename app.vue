@@ -51,7 +51,7 @@ const startConversion = async () => {
 
 <template>
   <Html lang="en" />
-  <Title>AP - Compressor</Title>
+  <Title>AP | Compressor</Title>
   <Head>
     <Link rel="icon" href="/favicon.ico" />
   </Head>
